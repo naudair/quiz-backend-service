@@ -40,7 +40,7 @@ const deleteFacts = async (req, res) => {
     try {
         const facts = await FactDataBase.findByIdAndDelete(factId)
         if (facts) {
-            res.status(200).send(`"${facts.title}" fact deleted.`);
+            res.status(200).send(facts._id);
         } else {
             res.status(404).send("Fact not found.");
         }
