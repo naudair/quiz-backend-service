@@ -1,5 +1,5 @@
 const FactDataBase = require("../database/schema/factSchema");
-
+const UserDataBase = require('../database/schema/userSchema')
 
 const createFacts = async (req, res) => {
     const body = req.body
@@ -17,9 +17,25 @@ const createFacts = async (req, res) => {
 const getFacts = async (req, res) => {
     try {
         const facts = await FactDataBase.find();
-        res.status(200).send(facts);
+        const mappedFacts = await Promise.all(facts.map(async (fact) => {
+            try {
+                const user = await UserDataBase.findById(fact.userID);
+                return {
+                    ...fact._doc,
+                    userName: user ? user.userName : null
+                };
+            } catch (err) {
+                console.error(err);
+                return {
+                    ...fact,
+                    userName: null
+                };
+            }
+        }));
+        res.status(200).send(mappedFacts);
     } catch (err) {
-        res.status(500).send({ message: "Internal Error" })
+        console.error(err);
+        res.status(500).send({ message: "Internal Error" });
     }
 }
 
@@ -27,8 +43,22 @@ const getUserfacts = async (req, res) => {
     const params = req.params
     try {
         const facts = await FactDataBase.find({ userID: params.userID })
-        console.log(facts)
-        res.status(200).send(facts);
+        const mappedFacts = await Promise.all(facts.map(async (fact) => {
+            try {
+                const user = await UserDataBase.findById(fact.userID);
+                return {
+                    ...fact._doc,
+                    userName: user ? user.userName : null
+                };
+            } catch (err) {
+                console.error(err);
+                return {
+                    ...fact,
+                    userName: null
+                };
+            }
+        }));
+        res.status(200).send(mappedFacts);
     } catch (err) {
         res.status(500).send({ message: "Internal Error" })
     }
